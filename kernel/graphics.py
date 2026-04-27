@@ -60,10 +60,10 @@ class Graphics:
             8192: (249, 246, 242),
         }
         
-        self.font_large = pygame.font.SysFont('arial', 48, bold=True)
-        self.font_medium = pygame.font.SysFont('arial', 36, bold=True)
-        self.font_small = pygame.font.SysFont('arial', 24, bold=True)
-        self.font_mini = pygame.font.SysFont('arial', 18, bold=True)
+        self.font_large = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 48, bold=True)
+        self.font_medium = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 36, bold=True)
+        self.font_small = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 24, bold=True)
+        self.font_mini = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 18, bold=True)
         
         self.animations = []
         self.is_animating = False
@@ -246,8 +246,8 @@ class Graphics:
                                (score_box_x, score_box_y, score_box_width, score_box_height), 
                                border_radius=5)
         
-        score_label = self.font_mini.render("分数", True, (255, 255, 255))
-        score_value = self.font_medium.render(str(score), True, (255, 255, 255))
+        score_label = self.font_mini.render("分数", True, (119, 110, 101))
+        score_value = self.font_medium.render(str(score), True, (119, 110, 101))
         
         self.screen.blit(score_label, 
                         (score_box_x + (score_box_width - score_label.get_width()) // 2, 
@@ -265,8 +265,8 @@ class Graphics:
                                (time_box_x, time_box_y, time_box_width, time_box_height), 
                                border_radius=5)
         
-        time_label = self.font_mini.render("时间", True, (255, 255, 255))
-        time_value = self.font_medium.render(self.format_time(elapsed_time), True, (255, 255, 255))
+        time_label = self.font_mini.render("时间", True, (119, 110, 101))
+        time_value = self.font_medium.render(self.format_time(elapsed_time), True, (119, 110, 101))
         
         self.screen.blit(time_label, 
                         (time_box_x + (time_box_width - time_label.get_width()) // 2, 
