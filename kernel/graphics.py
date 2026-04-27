@@ -60,17 +60,29 @@ class Graphics:
             8192: (249, 246, 242),
         }
         
-        self.font_large = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 48, bold=True)
-        self.font_medium = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 36, bold=True)
-        self.font_small = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 24, bold=True)
-        self.font_mini = pygame.font.SysFont('stheitimedium, songti, arialunicode, arial', 18, bold=True)
+        font_names = 'stheitimedium, songti, arialunicode, arial'
+        self.font_large = pygame.font.SysFont(font_names, 48, bold=True)
+        self.font_medium = pygame.font.SysFont(font_names, 36, bold=True)
+        self.font_small = pygame.font.SysFont(font_names, 24, bold=True)
+        self.font_mini = pygame.font.SysFont(font_names, 18, bold=True)
         
-        self.animations = []
+        self.new_tile_animation = None
         self.is_animating = False
         
+        self.button_width = 120
+        self.button_height = 40
+        self.button_y = self.grid_y + self.grid_height + 20
+        self.button_x = (self.window_width - self.button_width) // 2
+        
         self.buttons = {
-            'start': {'rect': None, 'text': '开始游戏', 'active': False},
-            'restart': {'rect': None, 'text': '重新开始', 'active': False}
+            'start': {
+                'rect': pygame.Rect(self.button_x, self.button_y, self.button_width, self.button_height),
+                'text': '开始游戏'
+            },
+            'restart': {
+                'rect': pygame.Rect(self.button_x, self.button_y, self.button_width, self.button_height),
+                'text': '重新开始'
+            }
         }
 
     def get_grid_position(self):
@@ -84,54 +96,30 @@ class Graphics:
         y = self.grid_y + self.cell_padding + row * (self.cell_size + self.cell_padding)
         return x, y
 
-    def add_animation(self, start_row, start_col, end_row, end_col, value, is_new=False, is_merged=False):
-        start_x, start_y = self.get_cell_position(start_row, start_col)
-        end_x, end_y = self.get_cell_position(end_row, end_col)
-        
-        animation = {
-            'start_x': start_x,
-            'start_y': start_y,
-            'end_x': end_x,
-            'end_y': end_y,
-            'current_x': start_x,
-            'current_y': start_y,
+    def add_new_tile_animation(self, row, col, value):
+        self.new_tile_animation = {
+            'row': row,
+            'col': col,
             'value': value,
-            'is_new': is_new,
-            'is_merged': is_merged,
             'progress': 0.0,
             'duration': 200,
-            'scale': 1.0 if not is_merged else 0.8
+            'scale': 0.1
         }
-        self.animations.append(animation)
         self.is_animating = True
 
     def update_animations(self, dt):
-        if not self.animations:
-            self.is_animating = False
-            return
-        
-        for anim in self.animations:
-            anim['progress'] += dt
-            if anim['progress'] >= anim['duration']:
-                anim['progress'] = anim['duration']
-            
-            t = anim['progress'] / anim['duration']
-            t = t * t * (3 - 2 * t)
-            
-            anim['current_x'] = anim['start_x'] + (anim['end_x'] - anim['start_x']) * t
-            anim['current_y'] = anim['start_y'] + (anim['end_y'] - anim['start_y']) * t
-            
-            if anim['is_merged']:
-                anim['scale'] = 0.8 + 0.2 * t
-            elif anim['is_new']:
-                anim['scale'] = t
-        
-        self.animations = [a for a in self.animations if a['progress'] < a['duration']]
-        if not self.animations:
-            self.is_animating = False
+        if self.new_tile_animation:
+            self.new_tile_animation['progress'] += dt
+            if self.new_tile_animation['progress'] >= self.new_tile_animation['duration']:
+                self.new_tile_animation = None
+                self.is_animating = False
+            else:
+                t = self.new_tile_animation['progress'] / self.new_tile_animation['duration']
+                t = t * t * (3 - 2 * t)
+                self.new_tile_animation['scale'] = 0.1 + 0.9 * t
 
     def clear_animations(self):
-        self.animations = []
+        self.new_tile_animation = None
         self.is_animating = False
 
     def draw_rounded_rect(self, surface, color, rect, border_radius=5):
@@ -156,11 +144,10 @@ class Graphics:
         color = self.tile_colors.get(value, self.tile_colors[8192])
         text_color = self.text_colors.get(value, self.text_colors[8192])
         
-        if scale < 1.0:
-            x = x + offset
-            y = y + offset
+        draw_x = x + offset if scale < 1.0 else x
+        draw_y = y + offset if scale < 1.0 else y
         
-        self.draw_rounded_rect(self.screen, color, (x, y, size, size), border_radius=3)
+        self.draw_rounded_rect(self.screen, color, (draw_x, draw_y, size, size), border_radius=3)
         
         if value < 100:
             font = self.font_large
@@ -170,21 +157,20 @@ class Graphics:
             font = self.font_small
         
         text = font.render(str(value), True, text_color)
-        text_rect = text.get_rect(center=(x + size // 2, y + size // 2))
+        text_rect = text.get_rect(center=(draw_x + size // 2, draw_y + size // 2))
         self.screen.blit(text, text_rect)
 
-    def draw_button(self, button_key, x, y, width, height, mouse_pos):
+    def draw_button(self, button_key, mouse_pos):
         button = self.buttons[button_key]
-        rect = pygame.Rect(x, y, width, height)
-        button['rect'] = rect
+        rect = button['rect']
         
         is_hovered = rect.collidepoint(mouse_pos)
         color = self.button_hover_color if is_hovered else self.button_color
         
-        self.draw_rounded_rect(self.screen, color, (x, y, width, height), border_radius=5)
+        self.draw_rounded_rect(self.screen, color, (rect.x, rect.y, rect.width, rect.height), border_radius=5)
         
         text = self.font_small.render(button['text'], True, self.button_text_color)
-        text_rect = text.get_rect(center=(x + width // 2, y + height // 2))
+        text_rect = text.get_rect(center=(rect.x + rect.width // 2, rect.y + rect.height // 2))
         self.screen.blit(text, text_rect)
         
         return is_hovered
@@ -286,29 +272,27 @@ class Graphics:
                                        (x, y, self.cell_size, self.cell_size), 
                                        border_radius=3)
         
-        if self.is_animating:
-            for anim in self.animations:
-                if anim['is_new'] and anim['scale'] < 0.1:
-                    continue
-                self.draw_tile(anim['current_x'], anim['current_y'], anim['value'], anim['scale'])
-        else:
-            for i in range(4):
-                for j in range(4):
-                    value = grid[i][j]
-                    if value != 0:
-                        x, y = self.get_cell_position(i, j)
-                        self.draw_tile(x, y, value)
+        animating_pos = None
+        if self.new_tile_animation:
+            animating_pos = (self.new_tile_animation['row'], self.new_tile_animation['col'])
         
-        button_width = 120
-        button_height = 40
-        button_y = self.grid_y + self.grid_height + 20
+        for i in range(4):
+            for j in range(4):
+                if animating_pos and (i, j) == animating_pos:
+                    continue
+                value = grid[i][j]
+                if value != 0:
+                    x, y = self.get_cell_position(i, j)
+                    self.draw_tile(x, y, value)
+        
+        if self.new_tile_animation:
+            x, y = self.get_cell_position(self.new_tile_animation['row'], self.new_tile_animation['col'])
+            self.draw_tile(x, y, self.new_tile_animation['value'], self.new_tile_animation['scale'])
         
         if game_state == 'idle':
-            self.draw_button('start', (self.window_width - button_width) // 2, button_y, 
-                           button_width, button_height, mouse_pos)
+            self.draw_button('start', mouse_pos)
         elif game_state in ['playing', 'won', 'game_over']:
-            self.draw_button('restart', (self.window_width - button_width) // 2, button_y, 
-                           button_width, button_height, mouse_pos)
+            self.draw_button('restart', mouse_pos)
         
         if game_state == 'idle':
             instruction_text = self.font_mini.render("点击「开始游戏」按钮开始", True, (119, 110, 101))
@@ -330,7 +314,7 @@ class Graphics:
 
     def check_button_click(self, pos):
         for key, button in self.buttons.items():
-            if button['rect'] and button['rect'].collidepoint(pos):
+            if button['rect'].collidepoint(pos):
                 return key
         return None
 

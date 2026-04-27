@@ -32,6 +32,8 @@ def main():
         if game_state == 'playing':
             elapsed_time = (pygame.time.get_ticks() - start_time) / 1000
         
+        graphics.update_animations(dt)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -75,15 +77,10 @@ def main():
                             moved = game_logic.move_down()
                         
                         if moved:
-                            animations = game_logic.get_move_animations()
-                            for anim in animations:
-                                from_row, from_col, to_row, to_col, value = anim
-                                graphics.add_animation(from_row, from_col, to_row, to_col, value)
-                            
                             new_tile = game_logic.get_new_tile()
                             if new_tile:
                                 row, col, value = new_tile
-                                graphics.add_animation(row, col, row, col, value, is_new=True)
+                                graphics.add_new_tile_animation(row, col, value)
                             
                             if game_logic.has_won() and not won_state:
                                 won_state = True
@@ -93,9 +90,6 @@ def main():
             
             elif event.type == pygame.MOUSEMOTION:
                 mouse_handler.handle_event(event)
-        
-        if graphics.is_animating:
-            graphics.update_animations(dt)
         
         current_score = game_logic.get_score()
         current_grid = game_logic.get_grid()
