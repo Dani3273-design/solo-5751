@@ -1,5 +1,6 @@
 import pygame
 import sys
+import math
 
 class Graphics:
     def __init__(self, window_width=600, window_height=750):
@@ -66,8 +67,9 @@ class Graphics:
         self.font_small = pygame.font.SysFont(font_names, 24, bold=True)
         self.font_mini = pygame.font.SysFont(font_names, 18, bold=True)
         
-        self.new_tile_animation = None
+        self.animations = []
         self.is_animating = False
+        self.animation_duration = 400
         
         self.button_width = 120
         self.button_height = 40
@@ -84,6 +86,8 @@ class Graphics:
                 'text': '重新开始'
             }
         }
+        
+        self.current_grid = [[0] * 4 for _ in range(4)]
 
     def get_grid_position(self):
         return self.grid_x, self.grid_y
@@ -96,30 +100,65 @@ class Graphics:
         y = self.grid_y + self.cell_padding + row * (self.cell_size + self.cell_padding)
         return x, y
 
+    def set_current_grid(self, grid):
+        self.current_grid = [row[:] for row in grid]
+
     def add_new_tile_animation(self, row, col, value):
-        self.new_tile_animation = {
+        start_x, start_y = self.get_cell_position(row, col)
+        
+        animation = {
+            'type': 'new_tile',
             'row': row,
             'col': col,
+            'start_x': start_x,
+            'start_y': start_y,
             'value': value,
             'progress': 0.0,
-            'duration': 200,
-            'scale': 0.1
+            'duration': self.animation_duration,
+            'scale': 0.0
         }
+        self.animations.append(animation)
         self.is_animating = True
 
+    def _ease_out_cubic(self, t):
+        return 1 - pow(1 - t, 3)
+
+    def _ease_out_elastic(self, t):
+        c4 = (2 * 3.14159) / 3
+        if t == 0:
+            return 0
+        elif t == 1:
+            return 1
+        else:
+            return pow(2, -10 * t) * math.sin((t * 10 - 0.75) * c4) + 1
+
+    def _ease_out_back(self, t):
+        c1 = 1.70158
+        c3 = c1 + 1
+        return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
+
     def update_animations(self, dt):
-        if self.new_tile_animation:
-            self.new_tile_animation['progress'] += dt
-            if self.new_tile_animation['progress'] >= self.new_tile_animation['duration']:
-                self.new_tile_animation = None
-                self.is_animating = False
-            else:
-                t = self.new_tile_animation['progress'] / self.new_tile_animation['duration']
-                t = t * t * (3 - 2 * t)
-                self.new_tile_animation['scale'] = 0.1 + 0.9 * t
+        if not self.animations:
+            self.is_animating = False
+            return
+        
+        for anim in self.animations:
+            anim['progress'] += dt
+            if anim['progress'] >= anim['duration']:
+                anim['progress'] = anim['duration']
+            
+            t = anim['progress'] / anim['duration']
+            t = self._ease_out_cubic(t)
+            
+            if anim['type'] == 'new_tile':
+                anim['scale'] = t
+        
+        self.animations = [a for a in self.animations if a['progress'] < a['duration']]
+        if not self.animations:
+            self.is_animating = False
 
     def clear_animations(self):
-        self.new_tile_animation = None
+        self.animations = []
         self.is_animating = False
 
     def draw_rounded_rect(self, surface, color, rect, border_radius=5):
@@ -272,22 +311,24 @@ class Graphics:
                                        (x, y, self.cell_size, self.cell_size), 
                                        border_radius=3)
         
-        animating_pos = None
-        if self.new_tile_animation:
-            animating_pos = (self.new_tile_animation['row'], self.new_tile_animation['col'])
+        animating_positions = set()
+        for anim in self.animations:
+            animating_positions.add((anim['row'], anim['col']))
         
         for i in range(4):
             for j in range(4):
-                if animating_pos and (i, j) == animating_pos:
+                if (i, j) in animating_positions:
                     continue
                 value = grid[i][j]
                 if value != 0:
                     x, y = self.get_cell_position(i, j)
                     self.draw_tile(x, y, value)
         
-        if self.new_tile_animation:
-            x, y = self.get_cell_position(self.new_tile_animation['row'], self.new_tile_animation['col'])
-            self.draw_tile(x, y, self.new_tile_animation['value'], self.new_tile_animation['scale'])
+        for anim in self.animations:
+            if anim['scale'] < 0.05:
+                continue
+            x, y = self.get_cell_position(anim['row'], anim['col'])
+            self.draw_tile(x, y, anim['value'], anim['scale'])
         
         if game_state == 'idle':
             self.draw_button('start', mouse_pos)

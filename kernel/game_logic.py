@@ -85,7 +85,8 @@ class GameLogic:
             column = self._compress(column)
             for i in range(4):
                 self.grid[i][j] = column[i]
-            if [self.grid[i][j] for i in range(4)] != original:
+            new_column = [self.grid[i][j] for i in range(4)]
+            if new_column != original:
                 moved = True
         if moved:
             self._add_new_tile()
@@ -104,7 +105,8 @@ class GameLogic:
             column = column[::-1]
             for i in range(4):
                 self.grid[i][j] = column[i]
-            if [self.grid[i][j] for i in range(4)] != original:
+            new_column = [self.grid[i][j] for i in range(4)]
+            if new_column != original:
                 moved = True
         if moved:
             self._add_new_tile()

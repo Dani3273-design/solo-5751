@@ -43,20 +43,21 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 button_clicked = graphics.check_button_click(event.pos)
                 
-                if button_clicked == 'start' and game_state == 'idle':
-                    game_logic.reset()
-                    graphics.clear_animations()
-                    start_time = pygame.time.get_ticks()
-                    elapsed_time = 0
-                    won_state = False
-                    game_state = 'playing'
-                elif button_clicked == 'restart':
-                    game_logic.reset()
-                    graphics.clear_animations()
-                    start_time = pygame.time.get_ticks()
-                    elapsed_time = 0
-                    won_state = False
-                    game_state = 'playing'
+                if button_clicked:
+                    if game_state == 'idle':
+                        game_logic.reset()
+                        graphics.clear_animations()
+                        start_time = pygame.time.get_ticks()
+                        elapsed_time = 0
+                        won_state = False
+                        game_state = 'playing'
+                    else:
+                        game_logic.reset()
+                        graphics.clear_animations()
+                        start_time = pygame.time.get_ticks()
+                        elapsed_time = 0
+                        won_state = False
+                        game_state = 'playing'
                 else:
                     mouse_handler.handle_event(event)
             
