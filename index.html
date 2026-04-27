@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 游戏 - Pygame</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #faf8ef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #776e65;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .game-info {
+            background-color: #bbada0;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            text-align: left;
+            background-color: #eee4da;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        
+        .instructions h2 {
+            margin-top: 0;
+        }
+        
+        .instructions ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2048 游戏</h1>
+        
+        <div class="game-info">
+            <h2>游戏说明</h2>
+            <p>这是一个基于 Pygame 开发的 2048 游戏应用程序。</p>
+            <p>由于这是一个桌面应用程序，无法直接在浏览器中运行。</p>
+        </div>
+        
+        <div class="instructions">
+            <h2>如何运行游戏</h2>
+            <ul>
+                <li>确保你的电脑上已安装 Python 3.9 或更高版本</li>
+                <li>安装依赖：<code>pip install -r requirements.txt</code></li>
+                <li>运行游戏：<code>python main.py</code></li>
+            </ul>
+            
+            <h2>游戏操作</h2>
+            <ul>
+                <li><strong>鼠标操作：</strong>点击并拖动鼠标来移动方块</li>
+                <li><strong>键盘操作：</strong>也可以使用方向键（↑↓←→）来移动</li>
+                <li><strong>重新开始：</strong>按 R 键重新开始游戏</li>
+            </ul>
+            
+            <h2>游戏规则</h2>
+            <ul>
+                <li>通过滑动将相同数字的方块合并</li>
+                <li>合并相同数字时，分数会增加</li>
+                <li>目标是合成一个 2048 的方块</li>
+                <li>当没有空位置且无法合并时，游戏结束</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>项目结构：</p>
+            <ul>
+                <li><code>main.py</code> - 主游戏入口</li>
+                <li><code>kernel/game_logic.py</code> - 游戏核心逻辑</li>
+                <li><code>kernel/graphics.py</code> - 游戏画面渲染</li>
+                <li><code>kernel/mouse_handler.py</code> - 鼠标操作处理</li>
+                <li><code>requirements.txt</code> - 依赖文件</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
